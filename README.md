@@ -9,6 +9,7 @@ MASM is an assembly language designed in Digital Design lecture in Turkish-Germa
 Format: <Symbol> <Address>
 
 | Symbol | Adrress |
+--------------------
 | AND | 0x0xxx |
 | ADD | 0x1xxx |
 | LDA | 0x2xxx |
@@ -22,6 +23,7 @@ Format: <Symbol> <Address>
 Format: <Symbol>
 
 | Symbol | Adrress |
+--------------------
 | CLA | 0x7800 |
 | CLE | 0x7400 |
 | CMA | 0x7200 |
@@ -38,6 +40,7 @@ Format: <Symbol>
 ## Output Instrcutions
 
 | Symbol | Adrress |
+--------------------
 | INP | 0xF800 |
 | OUT | 0xF400 |
 | SKI | 0xF200 |
