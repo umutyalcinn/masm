@@ -33,13 +33,23 @@ func main() {
             fmt.Printf("Could not open file: %s\n", v)
         }
 
-        instructions := assembler.GetInstructions(string(content))
+        instructions, mapAddressTable := assembler.GetInstructions(string(content))
+
+        for i, instruction := range instructions {
+            if instruction.Operand == 0 && instruction.OpTag != "" {
+                address, ok := mapAddressTable[instruction.OpTag]
+                if ok {
+                    instruction.Operand = address
+                    instructions[i] = instruction
+                }
+            }
+        }
 
         output := make([]byte, 4096)
-        var current_address uint16 = 0
 
         for _, instruction := range instructions {
             opcode, pseudo_instruction, pseudo_operand, err := assembler.ParseInstruction(instruction)
+            address := instruction.Address * 2
 
             if err != nil {
                 fmt.Printf("Error parsing intruction %s\n", instruction.Operation)
@@ -47,20 +57,13 @@ func main() {
 
             switch pseudo_instruction {
                 case assembler.PSEDUO_UNKNOWN: {
-                    output[current_address] = byte(opcode)
-                    current_address += 1
-                    output[current_address] = byte(opcode >> 8)
-                    current_address += 1
+                    output[address] = byte(opcode)
+                    output[address + 1] = byte(opcode >> 8)
                     break
                 }
-                case assembler.PSEDUO_ORIGIN: {
-                    current_address = pseudo_operand * 2
-                }
                 case assembler.PSEDUO_HEX: {
-                    output[current_address] = byte(pseudo_operand)
-                    current_address += 1
-                    output[current_address] = byte(pseudo_operand >> 8)
-                    current_address += 1
+                    output[address] = byte(pseudo_operand)
+                    output[address + 1] = byte(pseudo_operand >> 8)
                 }
             }
         }

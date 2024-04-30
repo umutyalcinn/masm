@@ -3,8 +3,11 @@ package assembler
 import "errors"
 
 type Instruction struct {
+    Address uint16
     Operation string
     Operand uint16
+    Tag string
+    OpTag string
 }
 
 type Opcode uint16
