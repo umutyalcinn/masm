@@ -1,0 +1,6 @@
+LDA 7
+CMA
+INC
+ADD 6
+STA 8
+HLT
