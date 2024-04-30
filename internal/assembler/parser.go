@@ -47,18 +47,44 @@ var memInstructionMap = map[string]Opcode {
     "ISZI": 0xE000,
 }
 
-func ParseInstruction(instruction Instruction) (Opcode, error) {
+const (
+    PSEDUO_UNKNOWN = 0
+    PSEDUO_ORIGIN = 1
+    PSEDUO_HEX = 2
+)
+
+func ParsePseudoInstruction(instruction Instruction) (int, uint16) {
+    switch (instruction.Operation) {
+        case "ORG": {
+            return PSEDUO_ORIGIN, instruction.Operand
+        }
+        case "HEX": {
+            return PSEDUO_HEX, instruction.Operand
+        }
+        default: {
+            return PSEDUO_UNKNOWN, 0
+        }
+    }
+}
+
+func ParseInstruction(instruction Instruction) (Opcode, int, uint16, error) {
     val, nonMemory := nonMemInstructionMap[instruction.Operation]
 
     if nonMemory {
-        return val, nil
+        return val, 0, 0, nil
     }
 
     val, memory := memInstructionMap [instruction.Operation]
 
     if memory {
-        return val | Opcode(instruction.Operand), nil
+        return val | Opcode(instruction.Operand), 0, 0, nil
     }
 
-    return 0, errors.New("Undefined operation")
+    pseudo_instruction, pseduo_operand := ParsePseudoInstruction(instruction)
+
+    if pseudo_instruction != PSEDUO_UNKNOWN {
+        return 0, pseudo_instruction, pseduo_operand, nil
+    }
+
+    return 0, 0, 0, errors.New("Undefined operation")
 }

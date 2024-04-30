@@ -29,26 +29,40 @@ func main() {
     for _, v := range args.Inputs {
         content, err := os.ReadFile(v)
 
-        fmt.Printf("%s\n", string(content))
-
         if err != nil {
             fmt.Printf("Could not open file: %s\n", v)
         }
 
         instructions := assembler.GetInstructions(string(content))
 
-        output := make([]byte, 0)
+        output := make([]byte, 4096)
+        var current_address uint16 = 0
 
         for _, instruction := range instructions {
-            opcode, err := assembler.ParseInstruction(instruction)
+            opcode, pseudo_instruction, pseudo_operand, err := assembler.ParseInstruction(instruction)
 
             if err != nil {
                 fmt.Printf("Error parsing intruction %s\n", instruction.Operation)
             }
 
-            fmt.Printf("%x\n", opcode)
-
-            output = binary.LittleEndian.AppendUint16(output, uint16(opcode))
+            switch pseudo_instruction {
+                case assembler.PSEDUO_UNKNOWN: {
+                    output[current_address] = byte(opcode)
+                    current_address += 1
+                    output[current_address] = byte(opcode >> 8)
+                    current_address += 1
+                    break
+                }
+                case assembler.PSEDUO_ORIGIN: {
+                    current_address = pseudo_operand * 2
+                }
+                case assembler.PSEDUO_HEX: {
+                    output[current_address] = byte(pseudo_operand)
+                    current_address += 1
+                    output[current_address] = byte(pseudo_operand >> 8)
+                    current_address += 1
+                }
+            }
         }
 
         out_file, err := os.Create(args.Output)
